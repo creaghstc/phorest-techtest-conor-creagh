@@ -1,6 +1,5 @@
 package com.phorest.techtest.model;
 
-import com.phorest.techtest.enums.Colour;
 import com.phorest.techtest.enums.PrizeCategory;
 
 import java.math.BigDecimal;

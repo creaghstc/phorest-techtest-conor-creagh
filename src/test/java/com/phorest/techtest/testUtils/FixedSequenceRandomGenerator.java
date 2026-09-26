@@ -1,11 +1,11 @@
 package com.phorest.techtest.testUtils;
 
-import com.phorest.techtest.enums.Colour;
+import com.phorest.techtest.model.Colour;
 
 import java.util.random.RandomGenerator;
 
 /**
- * Test double that returns the given colours' ordinals, in order, from
+ * Test double that returns the given colours' ids, in order, from
  * {@link #nextInt(int, int)} — the requested origin/bound are ignored.
  */
 public class FixedSequenceRandomGenerator implements RandomGenerator {
@@ -19,7 +19,7 @@ public class FixedSequenceRandomGenerator implements RandomGenerator {
 
     @Override
     public int nextInt(int origin, int bound) {
-        return colours[position++].ordinal();
+        return colours[position++].id();
     }
 
     @Override

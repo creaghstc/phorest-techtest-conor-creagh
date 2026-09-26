@@ -20,7 +20,11 @@ public class FruitMachineConfig {
     public FruitMachine fruitMachine(
             RandomGenerator randomGenerator,
             @Value("${fruitMachine.initialBalance}") BigDecimal initialBalance,
-            @Value("${fruitMachine.costPerPlay}") BigDecimal costPerPlay) {
-        return new FruitMachine(randomGenerator, initialBalance, costPerPlay);
+            @Value("${fruitMachine.costPerPlay}") BigDecimal costPerPlay,
+            @Value("${fruitMachine.slotCount}") int slotCount,
+            @Value("${fruitMachine.colourCount}") int colourCount,
+            @Value("${fruitMachine.smallPrizeRunLength}") int smallPrizeRunLength) {
+        return new FruitMachine(
+                randomGenerator, initialBalance, costPerPlay, slotCount, colourCount, smallPrizeRunLength);
     }
 }
