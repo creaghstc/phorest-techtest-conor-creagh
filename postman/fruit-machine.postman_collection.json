@@ -1,0 +1,86 @@
+{
+	"info": {
+		"name": "Fruit Machine API",
+		"description": "Endpoints for the Fruit Machine REST API: play the machine, read its current state, and (re)configure it.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Get Machine State",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/fruit-machine",
+					"host": ["{{baseUrl}}"],
+					"path": ["fruit-machine"]
+				},
+				"description": "Returns the machine's current balance, free plays, and configuration (slotCount, colourCount, smallPrizeRunLength, costPerPlay)."
+			}
+		},
+		{
+			"name": "Play",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/fruit-machine/play",
+					"host": ["{{baseUrl}}"],
+					"path": ["fruit-machine", "play"]
+				},
+				"description": "Spins the machine, evaluates the prize, updates the float, and returns the outcome (slots, prize category, amount won, free plays awarded, resulting balance)."
+			}
+		},
+		{
+			"name": "Configure Machine",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"initialBalance\": 100.00,\n  \"costPerPlay\": 1.00,\n  \"slotCount\": 4,\n  \"colourCount\": 4,\n  \"smallPrizeRunLength\": 2\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/fruit-machine",
+					"host": ["{{baseUrl}}"],
+					"path": ["fruit-machine"]
+				},
+				"description": "Fully replaces the current machine with a fresh one built from the given configuration, discarding any existing balance/free plays."
+			}
+		},
+		{
+			"name": "Configure Machine - Invalid Request (400)",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"initialBalance\": -1.00,\n  \"costPerPlay\": 1.00,\n  \"slotCount\": 4,\n  \"colourCount\": 4,\n  \"smallPrizeRunLength\": 2\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/fruit-machine",
+					"host": ["{{baseUrl}}"],
+					"path": ["fruit-machine"]
+				},
+				"description": "Example of a request-validation failure (negative initialBalance) - returns a 400 ProblemDetail body."
+			}
+		}
+	]
+}

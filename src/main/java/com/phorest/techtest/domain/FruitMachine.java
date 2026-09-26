@@ -1,8 +1,11 @@
-package com.phorest.techtest.service;
+package com.phorest.techtest.domain;
 
 import com.phorest.techtest.enums.PrizeCategory;
 import com.phorest.techtest.model.Colour;
+import com.phorest.techtest.model.MachineState;
 import com.phorest.techtest.model.PlayOutcome;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -12,6 +15,8 @@ import java.util.Set;
 import java.util.random.RandomGenerator;
 
 public class FruitMachine {
+
+    private static final Logger log = LoggerFactory.getLogger(FruitMachine.class);
 
     private static final BigDecimal SMALL_PRIZE_MULTIPLIER = BigDecimal.valueOf(5);
     private static final BigDecimal TWO = BigDecimal.valueOf(2);
@@ -80,29 +85,47 @@ public class FruitMachine {
         chargeForPlay();
 
         List<Colour> slots = spinSlots();
+        log.debug("Slots drawn: {}", slots);
+
         PrizeCategory prizeCategory = determinePrizeCategory(slots);
+        log.debug("Prize category: {}", prizeCategory);
 
         BigDecimal prizeOwed = prizeOwed(prizeCategory);
         BigDecimal payout = prizeOwed.min(this.balance);
         BigDecimal shortfall = prizeOwed.subtract(payout);
+        log.debug("Prize owed: {}, payout: {}, shortfall: {}", prizeOwed, payout, shortfall);
 
         int freePlaysAwarded = 0;
         // Jackpot does not qualify for free plays
         if (prizeCategory != PrizeCategory.JACKPOT && shortfall.signum() > 0) {
             freePlaysAwarded = shortfall.divideToIntegralValue(this.costPerPlay).intValue();
             this.freePlays += freePlaysAwarded;
+            log.debug("Awarded {} free play(s) for the shortfall", freePlaysAwarded);
         }
 
         this.balance = this.balance.subtract(payout);
+        log.debug("Balance after payout: {}", this.balance);
+
+        if (prizeCategory != PrizeCategory.NONE) {
+            log.info("Player won {} ({})", payout, prizeCategory);
+        }
 
         return new PlayOutcome(slots, prizeCategory, payout, freePlaysAwarded, this.balance);
+    }
+
+    public synchronized MachineState state() {
+        return new MachineState(
+                this.balance, this.freePlays, this.slotCount, this.colourCount, this.smallPrizeRunLength,
+                this.costPerPlay);
     }
 
     private void chargeForPlay() {
         if (this.freePlays > 0) {
             this.freePlays--;
+            log.debug("Consumed a free play, {} remaining", this.freePlays);
         } else {
             this.balance = this.balance.add(this.costPerPlay);
+            log.debug("Charged {} for this play, balance now {}", this.costPerPlay, this.balance);
         }
     }
 

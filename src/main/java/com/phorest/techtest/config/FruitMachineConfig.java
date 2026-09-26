@@ -1,6 +1,6 @@
 package com.phorest.techtest.config;
 
-import com.phorest.techtest.service.FruitMachine;
+import com.phorest.techtest.domain.FruitMachine;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

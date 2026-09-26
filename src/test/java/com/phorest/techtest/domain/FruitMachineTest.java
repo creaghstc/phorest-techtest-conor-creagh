@@ -1,4 +1,4 @@
-package com.phorest.techtest.service;
+package com.phorest.techtest.domain;
 
 import com.phorest.techtest.enums.PrizeCategory;
 import com.phorest.techtest.model.Colour;

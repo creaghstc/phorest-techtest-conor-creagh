@@ -5,7 +5,7 @@ import com.phorest.techtest.model.Colour;
 import java.util.random.RandomGenerator;
 
 /**
- * Test double that returns the given colours' ids, in order, from
+ * Stub {@link RandomGenerator} for tests: returns the given colours' ids, in order, from
  * {@link #nextInt(int, int)} — the requested origin/bound are ignored.
  */
 public class FixedSequenceRandomGenerator implements RandomGenerator {
