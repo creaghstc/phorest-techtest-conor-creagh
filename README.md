@@ -138,3 +138,16 @@ Sometimes the generated code was fine, other times some refactoring was needed, 
 - After renaming the integration test class, the README was left with a stale reference to the old name — caught and fixed.
 - `GlobalExceptionHandler` only handled `IllegalArgumentException`, so an unmapped exception fell through to Spring Boot's default (differently-shaped) error response, and `@Valid` failures returned a generic `"Invalid request content."` with no field detail — added a `MethodArgumentNotValidException` handler and a catch-all `Exception` handler; the former needed `@Order(Ordered.HIGHEST_PRECEDENCE)` to win over Spring Boot's own built-in `problemdetails` advice, which was silently matching first.
 
+## Roadmap
+
+This will cover where I would take the project in the future.
+
+- Add a persistence layer for `fruitMachines`.
+  - As part of persisting, add the concept of multiple `fruitMachines`.
+  - Rewrite API to take` machineId` to allow multiple games at one time.
+- Add metrics endpoint for runtime metrics on container for monitoring and alerting.
+- Dedicated integration tests that run against a deployed environment as part of CI.
+- Publish docker image to central repository.
+- Add some form of code quality and security scanning ( SonarQube, Snyk ).
+- Authentication layer using OAuth2 JWTs or opaque tokens.
+- Statistics engine for payout stats.
