@@ -1,11 +1,19 @@
 package com.phorest.techtest.controller;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.phorest.techtest.enums.PrizeCategory;
+import com.phorest.techtest.exception.GlobalExceptionHandler;
 import com.phorest.techtest.model.Colour;
 import com.phorest.techtest.model.MachineState;
 import com.phorest.techtest.model.PlayOutcome;
 import com.phorest.techtest.service.FruitMachineService;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
@@ -15,6 +23,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.math.BigDecimal;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.BDDMockito.given;
@@ -33,6 +42,20 @@ class FruitMachineControllerTest {
 
     @MockitoBean
     private FruitMachineService fruitMachineService;
+
+    private ListAppender<ILoggingEvent> logAppender;
+
+    @BeforeEach
+    void attachLogAppender() {
+        this.logAppender = new ListAppender<>();
+        this.logAppender.start();
+        ((Logger) LoggerFactory.getLogger(GlobalExceptionHandler.class)).addAppender(this.logAppender);
+    }
+
+    @AfterEach
+    void detachLogAppender() {
+        ((Logger) LoggerFactory.getLogger(GlobalExceptionHandler.class)).detachAppender(this.logAppender);
+    }
 
     @Test
     void playReturnsTheOutcomeFromTheService() throws Exception {
@@ -101,7 +124,8 @@ class FruitMachineControllerTest {
 
     @Test
     void configureRejectsAnInvalidRequestBodyBeforeReachingTheService() throws Exception {
-        // when/then: negative initialBalance fails @Valid before the service is ever called
+        // when/then: negative initialBalance fails @Valid before the service is ever called,
+        // and the field-level violation message is surfaced rather than a generic detail
         mockMvc.perform(put("/fruit-machine")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -113,7 +137,8 @@ class FruitMachineControllerTest {
                                   "smallPrizeRunLength": 3
                                 }
                                 """))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail").value("initialBalance: must be greater than or equal to 0"));
 
         verifyNoInteractions(fruitMachineService);
     }
@@ -138,5 +163,23 @@ class FruitMachineControllerTest {
                                 """))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.detail").value("smallPrizeRunLength cannot exceed slotCount"));
+    }
+
+    @Test
+    void unexpectedExceptionsAreTranslatedToAGenericInternalServerError() throws Exception {
+        // given: an exception with no dedicated handler, whose message must not leak to the client
+        given(fruitMachineService.play()).willThrow(new RuntimeException("db connection string: secret"));
+
+        // when/then
+        mockMvc.perform(post("/fruit-machine/play"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.detail").value("An unexpected error occurred"));
+
+        // and: the real exception is still logged server-side, for debugging
+        assertThat(logAppender.list)
+                .anySatisfy(event -> {
+                    assertThat(event.getLevel()).isEqualTo(Level.ERROR);
+                    assertThat(event.getThrowableProxy().getMessage()).isEqualTo("db connection string: secret");
+                });
     }
 }
